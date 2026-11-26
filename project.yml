@@ -1,0 +1,28 @@
+name: gat0r
+
+options:
+  bundleIdPrefix: com.gat0r
+  deploymentTarget:
+    iOS: "11.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: com.gat0r.jailbreak
+    PRODUCT_NAME: gat0r
+    IPHONEOS_DEPLOYMENT_TARGET: "11.0"
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    CODE_SIGNING_ALLOWED: NO
+
+targets:
+  gat0r:
+    type: application
+    platform: iOS
+    sources:
+      - path: gat0r
+    settings:
+      base:
+        INFOPLIST_KEY_CFBundleDisplayName: gat0r
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        GENERATE_INFOPLIST_FILE: YES
