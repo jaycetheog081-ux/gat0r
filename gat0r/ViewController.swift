@@ -299,10 +299,10 @@ final class ViewController: UIViewController {
             height: 166
         )
 
-        logsLabel.font = .monospacedSystemFont(
-            ofSize: 10,
-            weight: .regular
-        )
+        logsLabel.font = UIFont(
+            name: "Menlo-Regular",
+            size: 10
+        ) ?? UIFont.systemFont(ofSize: 10)
 
         logsLabel.textColor = accent
         logsLabel.numberOfLines = 0
