@@ -1,7 +1,3 @@
-# XcodeGen project spec
-# Target: gat0r — iOS 11 rootful jailbreak scaffold
-# Build: xcodegen generate --spec project.yml
-
 name: gat0r
 
 options:
@@ -98,14 +94,6 @@ targets:
         excludes:
           - "Info.plist"
           - "*.entitlements"
-
-    dependencies:
-      - framework: System/Library/Frameworks/UIKit.framework
-        implicit: true
-      - framework: System/Library/Frameworks/Foundation.framework
-        implicit: true
-      - sdk: libc.tbd
-      - sdk: libSystem.B.tbd
 
     preBuildScripts:
       - name: "Verify architecture"
