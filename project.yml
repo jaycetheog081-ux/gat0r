@@ -1,29 +1,166 @@
+# XcodeGen project spec
+# Target: gat0r — iOS 11 rootful jailbreak
+# Exploit: machswap2 (CVE-2019-6225), A7–A11, iOS 11.0–11.4.1
+# Build: xcodegen generate --spec project.yml
+
 name: gat0r
 
 options:
   bundleIdPrefix: com.gat0r
   deploymentTarget:
     iOS: "11.0"
+  xcodeVersion: "15.0"
   createIntermediateGroups: true
+  generateEmptyDirectories: true
+  usesTabs: false
+  indentWidth: 4
+  tabWidth: 4
 
 settings:
   base:
-    PRODUCT_BUNDLE_IDENTIFIER: com.gat0r.jailbreak
     PRODUCT_NAME: gat0r
+    SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "11.0"
-    SWIFT_VERSION: "5.0"
-    TARGETED_DEVICE_FAMILY: "1,2"
-    CODE_SIGNING_ALLOWED: NO
+    TARGETED_DEVICE_FAMILY: "1,2"               # iPhone + iPad
+    ARCHS: arm64                                # 64-bit only — matches exploit target
+    VALID_ARCHS: arm64
+    ONLY_ACTIVE_ARCH: NO
+    ENABLE_BITCODE: NO                          # required — bitcode strips custom sections
+    ENABLE_HARDENED_RUNTIME: NO                 # required — tfp0 acquisition
+    CODE_SIGNING_ALLOWED: NO                    # unsigned IPA via CI
+    CODE_SIGNING_REQUIRED: NO
+    CODE_SIGN_IDENTITY: ""
+    ENTITLEMENTS_REQUIRED: NO
+    GCC_OPTIMIZATION_LEVEL: "0"                 # debug; set to s for release
+    SWIFT_OPTIMIZATION_LEVEL: "-Onone"          # debug
+    OTHER_CFLAGS:
+      - "-Imachswap2"                           # machswap2 header path
+      - "-Igat0r"                               # project headers
+    OTHER_LDFLAGS:
+      - "-lc++"                                 # C++ runtime for machswap2 internals if needed
+    SWIFT_OBJC_BRIDGING_HEADER: gat0r/machswap2_bridge.h
+    CLANG_ENABLE_MODULES: YES
+    CLANG_ENABLE_OBJC_ARC: YES
+    MTL_ENABLE_DEBUG_INFO: YES
+    DEBUG_INFORMATION_FORMAT: dwarf            # dwarf-with-dsym for release
+
+  configs:
+    Debug:
+      GCC_PREPROCESSOR_DEFINITIONS:
+        - "DEBUG=1"
+        - "$(inherited)"
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+
+    Release:
+      GCC_OPTIMIZATION_LEVEL: s
+      SWIFT_OPTIMIZATION_LEVEL: "-O"
+      DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+      GCC_PREPROCESSOR_DEFINITIONS:
+        - "$(inherited)"
 
 targets:
   gat0r:
     type: application
     platform: iOS
+    deploymentTarget: "11.0"
+
+    info:
+      path: gat0r/Info.plist
+      properties:
+        CFBundleName: gat0r
+        CFBundleIdentifier: com.gat0r.app
+        CFBundleVersion: "1"
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleExecutable: "$(EXECUTABLE_NAME)"
+        CFBundleDevelopmentRegion: en
+        CFBundleInfoDictionaryVersion: "6.0"
+        CFBundlePackageType: APPL
+        LSRequiresIPhoneOS: true
+        UILaunchStoryboardName: ""             # no storyboard — UIKit programmatic
+        UIApplicationSceneManifest: {}
+        UIRequiresFullScreen: true
+        NSPrincipalClass: UIApplication
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UIViewControllerBasedStatusBarAppearance: false
+        UIDeviceCapabilities:
+          - arm64
+
+    # Entitlements — minimal; expand when bootstrap requires platform-application
+    entitlements:
+      path: gat0r/gat0r.entitlements
+      properties:
+        com.apple.security.application-groups: []
+
     sources:
+      # Swift application layer
       - path: gat0r
-    settings:
-  SWIFT_OBJC_BRIDGING_HEADER: gat0r/machswap2_bridge.h
-      base:
-        INFOPLIST_KEY_CFBundleDisplayName: gat0r
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        GENERATE_INFOPLIST_FILE: YES
+        includes:
+          - "**/*.swift"
+          - "**/*.h"
+          - "**/*.m"
+          - "**/*.c"
+        excludes:
+          - "Info.plist"
+          - "*.entitlements"
+
+      # machswap2 C exploit sources — full directory
+      - path: machswap2
+        includes:
+          - "**/*.c"
+          - "**/*.h"
+          - "**/*.m"
+        buildPhase: sources
+
+    # Linked frameworks
+    dependencies:
+      - framework: System/Library/Frameworks/UIKit.framework
+        implicit: true
+      - framework: System/Library/Frameworks/Foundation.framework
+        implicit: true
+      - sdk: libc.tbd
+      - sdk: libSystem.B.tbd
+
+    # Build phases
+    preBuildScripts:
+      - name: "Verify architecture"
+        script: |
+          if [ "$ARCHS" != "arm64" ]; then
+            echo "error: gat0r requires arm64 — build for device only"
+            exit 1
+          fi
+
+    postBuildScripts:
+      - name: "Package unsigned IPA"
+        script: |
+          set -e
+          APP_PATH="$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app"
+          IPA_DIR="$BUILT_PRODUCTS_DIR/ipa"
+          mkdir -p "$IPA_DIR/Payload"
+          cp -r "$APP_PATH" "$IPA_DIR/Payload/"
+          cd "$IPA_DIR"
+          zip -r "$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.ipa" Payload/
+          echo "IPA: $BUILT_PRODUCTS_DIR/$PRODUCT_NAME.ipa"
+
+schemes:
+  gat0r:
+    build:
+      targets:
+        gat0r: all
+
+    run:
+      config: Debug
+      commandLineArguments: {}
+      environmentVariables: {}
+
+    test:
+      config: Debug
+      targets: []
+
+    profile:
+      config: Release
+
+    analyze:
+      config: Debug
+
+    archive:
+      config: Release
