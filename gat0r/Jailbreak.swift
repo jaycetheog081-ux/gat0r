@@ -1,92 +1,43 @@
-// language: Swift, file: Jailbreak.swift, target: iOS 11
-
 import Foundation
-import MachO
 
-// MARK: - Exploit backend protocol
+struct JailbreakCoordinator {
 
-protocol ExploitBackend {
-    func run() -> ExploitRunResult
-}
+    static let shared = JailbreakCoordinator()
 
-struct ExploitRunResult {
-    let tfp0: mach_port_t
-    let success: Bool
-    let errorMessage: String
-}
+    private init() {}
 
-// MARK: - machswap2 backend
+    func start(completion: @escaping (Bool, String) -> Void) {
+        GTRLogger.shared.log("Jailbreak request received.")
 
-struct MachSwap2Backend: ExploitBackend {
+        let device = DeviceInfo.current
 
-    func run() -> ExploitRunResult {
-        Logger.shared.log("ExploitBackend: invoking machswap2 (CVE-2019-6225)")
+        guard device.isCompatible else {
+            let message = "This device does not match gat0r's iOS 11.0–11.4.1 ARM64 target."
+            GTRLogger.shared.log("Rejected: \(message)")
 
-        let result = machswap2_run()   // C bridge call
-
-        guard result.success, MACH_PORT_VALID(result.tfp0) else {
-            let msg = String(cString: result.error_msg)
-            Logger.shared.log("ExploitBackend: failed — \(msg)")
-            return ExploitRunResult(tfp0: mach_port_t(MACH_PORT_NULL),
-                                    success: false,
-                                    errorMessage: msg)
+            DispatchQueue.main.async {
+                completion(false, message)
+            }
+            return
         }
 
-        Logger.shared.log("ExploitBackend: tfp0 = \(result.tfp0)")
-
-        // Optional liveness check
-        let valid = machswap2_validate_tfp0(result.tfp0)
-        Logger.shared.log("ExploitBackend: tfp0 validation = \(valid)")
-
-        return ExploitRunResult(tfp0: result.tfp0,
-                                success: valid,
-                                errorMessage: valid ? "" : "tfp0 validation failed")
-    }
-}
-
-// MARK: - Jailbreak coordinator
-
-class JailbreakCoordinator {
-
-    private let backend: ExploitBackend
-    var tfp0: mach_port_t = mach_port_t(MACH_PORT_NULL)
-
-    init(backend: ExploitBackend = MachSwap2Backend()) {
-        self.backend = backend
-    }
-
-    func run(completion: @escaping (Bool, String) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
-            let result = self.backend.run()
-            self.tfp0 = result.tfp0
+            GTRLogger.shared.log("Checking exploit backend availability.")
+
+            let result = machswap2_run()
+            let message: String
 
             if result.success {
-                self.postExploit(completion: completion)
+                message = "The exploit bridge returned success, but the post-exploit and bootstrap chain is not implemented. No jailbreak is being reported."
+                GTRLogger.shared.log("Backend returned success; post-exploit chain unavailable.")
             } else {
-                DispatchQueue.main.async {
-                    completion(false, result.errorMessage)
-                }
+                message = String(cString: result.error_msg)
+                GTRLogger.shared.log("Backend unavailable: \(message)")
             }
-        }
-    }
 
-    // MARK: Post-exploit chain (stubs — fill in with bootstrap logic)
-
-    private func postExploit(completion: @escaping (Bool, String) -> Void) {
-        Logger.shared.log("JailbreakCoordinator: entering post-exploit chain")
-
-        // 1. Resolve kASLR slide via tfp0 read of known static address
-        // 2. Patch sandbox — set p_flags on current proc
-        // 3. Escalate credentials — patch proc ucred to root uid/gid
-        // 4. Mount rootfs r/w — remount via tfp0 + vnode manipulation
-        // 5. Drop bootstrap tarball, run launchd plist injection
-        // 6. Signal ViewController
-
-        // These are the next build targets — coordinate in order
-        Logger.shared.log("JailbreakCoordinator: post-exploit stubs pending")
-
-        DispatchQueue.main.async {
-            completion(true, "tfp0 acquired — bootstrap pending")
+            DispatchQueue.main.async {
+                completion(false, message)
+            }
         }
     }
 }
