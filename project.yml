@@ -22,6 +22,7 @@ targets:
     sources:
       - path: gat0r
     settings:
+  SWIFT_OBJC_BRIDGING_HEADER: gat0r/machswap2_bridge.h
       base:
         INFOPLIST_KEY_CFBundleDisplayName: gat0r
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
