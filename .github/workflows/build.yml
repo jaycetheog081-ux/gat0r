@@ -8,7 +8,7 @@ on:
       - master
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -49,9 +49,17 @@ jobs:
           unzip -t artifacts/gat0r.ipa
           unzip -Z1 artifacts/gat0r.ipa | grep -Fx 'Payload/gat0r.app/Info.plist'
 
-      - name: Upload IPA
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: gat0r-unsigned-ipa
           path: artifacts/gat0r.ipa
           if-no-files-found: error
+
+      - name: Publish direct IPA download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: gat0r-build-${{ github.run_number }}
+          name: gat0r build ${{ github.run_number }}
+          generate_release_notes: true
+          files: artifacts/gat0r.ipa
