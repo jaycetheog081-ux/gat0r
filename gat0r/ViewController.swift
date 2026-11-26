@@ -2,103 +2,42 @@ import UIKit
 
 final class ViewController: UIViewController {
 
-    private let backgroundTop = UIColor(
-        red: 0.075,
-        green: 0.065,
-        blue: 0.105,
-        alpha: 1
-    )
-
-    private let backgroundBottom = UIColor(
-        red: 0.025,
-        green: 0.027,
-        blue: 0.040,
-        alpha: 1
-    )
-
-    private let accent = UIColor(
-        red: 0.72,
-        green: 0.57,
-        blue: 0.91,
-        alpha: 1
-    )
-
-    private let mutedText = UIColor(
-        red: 0.62,
-        green: 0.60,
-        blue: 0.68,
-        alpha: 1
-    )
+    private let ink = UIColor(red: 0.055, green: 0.071, blue: 0.055, alpha: 1)
+    private let paper = UIColor(red: 0.91, green: 0.91, blue: 0.82, alpha: 1)
+    private let dim = UIColor(red: 0.48, green: 0.52, blue: 0.43, alpha: 1)
+    private let acid = UIColor(red: 0.76, green: 0.91, blue: 0.34, alpha: 1)
+    private let rule = UIColor(red: 0.22, green: 0.27, blue: 0.20, alpha: 1)
 
     private let scrollView = UIScrollView()
-    private let contentView = UIView()
-    private let mainStack = UIStackView()
+    private let content = UIView()
+    private let stack = UIStackView()
 
-    private let versionLabel = UILabel()
-    private let deviceLabel = UILabel()
-    private let architectureLabel = UILabel()
-    private let compatibilityLabel = UILabel()
-    private let statusLabel = UILabel()
-    private let statusIndicator = UIView()
-    private let logsLabel = UILabel()
-
-    private let jailbreakButton = UIButton(type: .system)
-    private let bootstrapButton = UIButton(type: .system)
-
-    private let gradientLayer = CAGradientLayer()
+    private let versionValue = UILabel()
+    private let modelValue = UILabel()
+    private let architectureValue = UILabel()
+    private let compatibilityValue = UILabel()
+    private let statusValue = UILabel()
+    private let statusMark = UIView()
+    private let logsValue = UILabel()
+    private let jailbreakButton = UIButton(type: .custom)
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = backgroundBottom
-        configureBackground()
-        buildInterface()
+        view.backgroundColor = ink
 
+        configureLayout()
         refreshDevice()
-        GTRLogger.shared.log("gat0r initialized.")
+
+        GTRLogger.shared.log("gat0r / session opened")
         refreshLogs()
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        gradientLayer.frame = view.bounds
-    }
-
-    private func configureBackground() {
-        gradientLayer.colors = [
-            backgroundTop.cgColor,
-            backgroundBottom.cgColor
-        ]
-        gradientLayer.startPoint = CGPoint(x: 0.15, y: 0)
-        gradientLayer.endPoint = CGPoint(x: 0.85, y: 1)
-        view.layer.insertSublayer(gradientLayer, at: 0)
-    }
-
-    private func makeLabel(
-        _ text: String,
-        size: CGFloat,
-        weight: UIFont.Weight = .regular,
-        color: UIColor = .white
-    ) -> UILabel {
-        let label = UILabel()
-        label.text = text
-        label.font = UIFont.systemFont(ofSize: size, weight: weight)
-        label.textColor = color
-        label.numberOfLines = 0
-        return label
-    }
-
-    private func makeRule() -> UIView {
-        let rule = UIView()
-        rule.backgroundColor = UIColor.white.withAlphaComponent(0.10)
-        rule.heightAnchor.constraint(equalToConstant: 1).isActive = true
-        return rule
-    }
-
-    private func buildInterface() {
+    private func configureLayout() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.alwaysBounceVertical = true
         scrollView.showsVerticalScrollIndicator = false
+
         view.addSubview(scrollView)
 
         NSLayoutConstraint.activate([
@@ -108,253 +47,385 @@ final class ViewController: UIViewController {
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
-        contentView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.addSubview(contentView)
+        content.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(content)
 
         NSLayoutConstraint.activate([
-            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
-            contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor)
+            content.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            content.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            content.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            content.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            content.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor)
         ])
 
-        mainStack.axis = .vertical
-        mainStack.alignment = .fill
-        mainStack.distribution = .fill
-        mainStack.spacing = 0
-        mainStack.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(mainStack)
+        stack.axis = .vertical
+        stack.alignment = .fill
+        stack.spacing = 0
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        content.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            mainStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 26),
-            mainStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -26),
-            mainStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 30),
-            mainStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30)
+            stack.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 25),
+            stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -25),
+            stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 25),
+            stack.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -32)
         ])
 
-        let header = UIView()
-        header.translatesAutoresizingMaskIntoConstraints = false
+        buildMasthead()
+        buildHero()
+        buildDeviceSection()
+        buildActionSection()
+        buildDiagnosticsSection()
+    }
 
-        let wordmark = makeLabel(
-            "gat0r",
-            size: 39,
-            weight: .bold,
-            color: UIColor(red: 0.91, green: 0.87, blue: 0.97, alpha: 1)
+    private func mono(_ size: CGFloat, bold: Bool = false) -> UIFont {
+        let name = bold ? "Menlo-Bold" : "Menlo-Regular"
+
+        return UIFont(name: name, size: size)
+            ?? UIFont.systemFont(ofSize: size, weight: bold ? .bold : .regular)
+    }
+
+    private func label(
+        _ text: String,
+        size: CGFloat,
+        color: UIColor,
+        weight: UIFont.Weight = .regular
+    ) -> UILabel {
+        let item = UILabel()
+
+        item.text = text
+        item.textColor = color
+        item.font = UIFont.systemFont(ofSize: size, weight: weight)
+        item.numberOfLines = 0
+
+        return item
+    }
+
+    private func addRule() {
+        let line = UIView()
+
+        line.backgroundColor = rule
+        line.translatesAutoresizingMaskIntoConstraints = false
+        line.heightAnchor.constraint(
+            equalToConstant: 1 / UIScreen.main.scale
+        ).isActive = true
+
+        stack.addArrangedSubview(line)
+    }
+
+    private func buildMasthead() {
+        let row = UIStackView()
+
+        row.axis = .horizontal
+        row.alignment = .center
+        row.distribution = .equalSpacing
+
+        let mark = label("G / 01", size: 11, color: acid, weight: .bold)
+        mark.font = mono(11, bold: true)
+
+        let edition = label("FIELD RELEASE     •     ARM64", size: 9, color: dim)
+        edition.font = mono(9)
+
+        row.addArrangedSubview(mark)
+        row.addArrangedSubview(edition)
+
+        stack.addArrangedSubview(row)
+        stack.setCustomSpacing(34, after: row)
+
+        addRule()
+        stack.setCustomSpacing(21, after: stack.arrangedSubviews.last!)
+    }
+
+    private func buildHero() {
+        let title = label("gat0r", size: 58, color: paper, weight: .bold)
+
+        title.font = UIFont(name: "Georgia-Bold", size: 58)
+            ?? UIFont.boldSystemFont(ofSize: 58)
+
+        title.adjustsFontSizeToFitWidth = true
+        title.minimumScaleFactor = 0.7
+
+        stack.addArrangedSubview(title)
+        stack.setCustomSpacing(3, after: title)
+
+        let subtitle = label(
+            "A rootful instrument for iOS 11.",
+            size: 14,
+            color: dim
         )
-        wordmark.translatesAutoresizingMaskIntoConstraints = false
 
-        let subtitle = makeLabel(
-            "A ROOTFUL iOS 11 JAILBREAK",
-            size: 10,
-            weight: .semibold,
-            color: mutedText
-        )
-        subtitle.font = UIFont(name: "Menlo-Bold", size: 9) ?? UIFont.systemFont(ofSize: 9, weight: .semibold)
-        subtitle.translatesAutoresizingMaskIntoConstraints = false
+        subtitle.font = UIFont(name: "Georgia", size: 14)
+            ?? UIFont.systemFont(ofSize: 14)
 
-        header.addSubview(wordmark)
-        header.addSubview(subtitle)
+        stack.addArrangedSubview(subtitle)
+        stack.setCustomSpacing(24, after: subtitle)
+
+        let target = UIStackView()
+
+        target.axis = .horizontal
+        target.alignment = .center
+        target.spacing = 10
+
+        let targetMark = UIView()
+        targetMark.backgroundColor = acid
+        targetMark.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            wordmark.leadingAnchor.constraint(equalTo: header.leadingAnchor),
-            wordmark.topAnchor.constraint(equalTo: header.topAnchor),
-            subtitle.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 2),
-            subtitle.topAnchor.constraint(equalTo: wordmark.bottomAnchor, constant: 3),
-            subtitle.bottomAnchor.constraint(equalTo: header.bottomAnchor),
-            header.heightAnchor.constraint(equalToConstant: 76)
+            targetMark.widthAnchor.constraint(equalToConstant: 5),
+            targetMark.heightAnchor.constraint(equalToConstant: 22)
         ])
 
-        mainStack.addArrangedSubview(header)
-        mainStack.setCustomSpacing(28, after: header)
-
-        let targetLine = makeLabel(
-            "TARGET  /  11.0 — 11.4.1",
+        let targetText = label(
+            "TARGET WINDOW   /   11.0 — 11.4.1",
             size: 10,
-            weight: .medium,
-            color: accent
+            color: acid
         )
-        targetLine.font = UIFont(name: "Menlo-Regular", size: 10) ?? UIFont.systemFont(ofSize: 10)
-        mainStack.addArrangedSubview(targetLine)
-        mainStack.setCustomSpacing(13, after: targetLine)
 
-        mainStack.addArrangedSubview(makeRule())
-        mainStack.setCustomSpacing(17, after: mainStack.arrangedSubviews.last!)
+        targetText.font = mono(10, bold: true)
 
-        let deviceHeading = makeLabel(
-            "DEVICE",
-            size: 10,
-            weight: .bold,
-            color: mutedText
-        )
-        deviceHeading.font = UIFont(name: "Menlo-Bold", size: 9) ?? UIFont.systemFont(ofSize: 9, weight: .bold)
-        mainStack.addArrangedSubview(deviceHeading)
-        mainStack.setCustomSpacing(10, after: deviceHeading)
+        target.addArrangedSubview(targetMark)
+        target.addArrangedSubview(targetText)
 
-        versionLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        versionLabel.textColor = .white
-        mainStack.addArrangedSubview(versionLabel)
-        mainStack.setCustomSpacing(5, after: versionLabel)
+        stack.addArrangedSubview(target)
+        stack.setCustomSpacing(29, after: target)
+    }
 
-        deviceLabel.font = UIFont.systemFont(ofSize: 12, weight: .regular)
-        deviceLabel.textColor = mutedText
-        mainStack.addArrangedSubview(deviceLabel)
-        mainStack.setCustomSpacing(4, after: deviceLabel)
+    private func buildDeviceSection() {
+        addRule()
+        stack.setCustomSpacing(17, after: stack.arrangedSubviews.last!)
 
-        architectureLabel.font = UIFont(name: "Menlo-Regular", size: 10) ?? UIFont.systemFont(ofSize: 10)
-        architectureLabel.textColor = mutedText
-        mainStack.addArrangedSubview(architectureLabel)
-        mainStack.setCustomSpacing(8, after: architectureLabel)
+        addSectionHeading("01", title: "DEVICE RECORD")
 
-        compatibilityLabel.font = UIFont.systemFont(ofSize: 11, weight: .medium)
-        compatibilityLabel.textColor = accent
-        mainStack.addArrangedSubview(compatibilityLabel)
-        mainStack.setCustomSpacing(20, after: compatibilityLabel)
+        addDataRow("SYSTEM", value: versionValue)
+        addDataRow("IDENTIFIER", value: modelValue)
+        addDataRow("ARCHITECTURE", value: architectureValue)
+
+        compatibilityValue.font = mono(9, bold: true)
+        compatibilityValue.textColor = acid
+        compatibilityValue.numberOfLines = 0
+
+        stack.addArrangedSubview(compatibilityValue)
+        stack.setCustomSpacing(22, after: compatibilityValue)
+    }
+
+    private func buildActionSection() {
+        addRule()
+        stack.setCustomSpacing(17, after: stack.arrangedSubviews.last!)
+
+        addSectionHeading("02", title: "EXECUTION")
 
         let statusRow = UIStackView()
+
         statusRow.axis = .horizontal
         statusRow.alignment = .center
         statusRow.spacing = 9
 
-        statusIndicator.backgroundColor = UIColor(
-            red: 0.78,
-            green: 0.59,
-            blue: 0.36,
-            alpha: 1
-        )
-        statusIndicator.layer.cornerRadius = 3
-        statusIndicator.translatesAutoresizingMaskIntoConstraints = false
+        statusMark.backgroundColor = acid
+        statusMark.layer.cornerRadius = 2
+        statusMark.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            statusIndicator.widthAnchor.constraint(equalToConstant: 6),
-            statusIndicator.heightAnchor.constraint(equalToConstant: 6)
+            statusMark.widthAnchor.constraint(equalToConstant: 5),
+            statusMark.heightAnchor.constraint(equalToConstant: 5)
         ])
 
-        statusLabel.text = "READY"
-        statusLabel.font = UIFont(name: "Menlo-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .bold)
-        statusLabel.textColor = mutedText
+        statusValue.text = "BACKEND NOT VERIFIED"
+        statusValue.textColor = paper
+        statusValue.font = mono(10, bold: true)
 
-        statusRow.addArrangedSubview(statusIndicator)
-        statusRow.addArrangedSubview(statusLabel)
-        mainStack.addArrangedSubview(statusRow)
-        mainStack.setCustomSpacing(17, after: statusRow)
+        statusRow.addArrangedSubview(statusMark)
+        statusRow.addArrangedSubview(statusValue)
 
-        jailbreakButton.backgroundColor = UIColor(
-            red: 0.43,
-            green: 0.31,
-            blue: 0.58,
-            alpha: 1
+        stack.addArrangedSubview(statusRow)
+        stack.setCustomSpacing(15, after: statusRow)
+
+        jailbreakButton.setTitle("  JAILBREAK  ↗", for: .normal)
+        jailbreakButton.setTitleColor(ink, for: .normal)
+        jailbreakButton.titleLabel?.font = mono(13, bold: true)
+        jailbreakButton.contentHorizontalAlignment = .left
+        jailbreakButton.backgroundColor = acid
+        jailbreakButton.layer.cornerRadius = 2
+        jailbreakButton.contentEdgeInsets = UIEdgeInsets(
+            top: 0,
+            left: 17,
+            bottom: 0,
+            right: 17
         )
-        jailbreakButton.setTitle("JAILBREAK", for: .normal)
-        jailbreakButton.setTitleColor(.white, for: .normal)
-        jailbreakButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
-        jailbreakButton.layer.cornerRadius = 8
-        jailbreakButton.layer.borderWidth = 1
-        jailbreakButton.layer.borderColor = UIColor.white.withAlphaComponent(0.13).cgColor
-        jailbreakButton.heightAnchor.constraint(equalToConstant: 58).isActive = true
+
+        jailbreakButton.translatesAutoresizingMaskIntoConstraints = false
+        jailbreakButton.heightAnchor.constraint(equalToConstant: 55).isActive = true
+
         jailbreakButton.addTarget(
             self,
             action: #selector(startJailbreak),
             for: .touchUpInside
         )
-        mainStack.addArrangedSubview(jailbreakButton)
-        mainStack.setCustomSpacing(9, after: jailbreakButton)
 
-        bootstrapButton.setTitle("CHECK BOOTSTRAP", for: .normal)
-        bootstrapButton.setTitleColor(mutedText, for: .normal)
-        bootstrapButton.titleLabel?.font = UIFont(name: "Menlo-Bold", size: 9) ?? UIFont.systemFont(ofSize: 9, weight: .bold)
-        bootstrapButton.heightAnchor.constraint(equalToConstant: 38).isActive = true
-        bootstrapButton.addTarget(
+        stack.addArrangedSubview(jailbreakButton)
+        stack.setCustomSpacing(8, after: jailbreakButton)
+
+        let bootstrap = UIButton(type: .system)
+
+        bootstrap.setTitle("INSPECT BOOTSTRAP  →", for: .normal)
+        bootstrap.setTitleColor(dim, for: .normal)
+        bootstrap.contentHorizontalAlignment = .left
+        bootstrap.titleLabel?.font = mono(9, bold: true)
+        bootstrap.addTarget(
             self,
             action: #selector(checkBootstrap),
             for: .touchUpInside
         )
-        mainStack.addArrangedSubview(bootstrapButton)
-        mainStack.setCustomSpacing(24, after: bootstrapButton)
 
-        mainStack.addArrangedSubview(makeRule())
-        mainStack.setCustomSpacing(15, after: mainStack.arrangedSubviews.last!)
+        bootstrap.heightAnchor.constraint(equalToConstant: 36).isActive = true
 
-        let diagnosticsHeading = makeLabel(
-            "DIAGNOSTICS",
-            size: 10,
-            weight: .bold,
-            color: mutedText
-        )
-        diagnosticsHeading.font = UIFont(name: "Menlo-Bold", size: 9) ?? UIFont.systemFont(ofSize: 9, weight: .bold)
-        mainStack.addArrangedSubview(diagnosticsHeading)
-        mainStack.setCustomSpacing(10, after: diagnosticsHeading)
+        stack.addArrangedSubview(bootstrap)
+        stack.setCustomSpacing(24, after: bootstrap)
+    }
 
-        logsLabel.font = UIFont(name: "Menlo-Regular", size: 9) ?? UIFont.systemFont(ofSize: 9)
-        logsLabel.textColor = UIColor(
-            red: 0.72,
-            green: 0.69,
-            blue: 0.79,
+    private func buildDiagnosticsSection() {
+        addRule()
+        stack.setCustomSpacing(17, after: stack.arrangedSubviews.last!)
+
+        addSectionHeading("03", title: "EVENT TRACE")
+
+        logsValue.font = mono(9)
+        logsValue.textColor = UIColor(
+            red: 0.66,
+            green: 0.70,
+            blue: 0.59,
             alpha: 1
         )
-        logsLabel.numberOfLines = 0
-        logsLabel.lineBreakMode = .byWordWrapping
-        logsLabel.text = "Waiting for diagnostics…"
+        logsValue.numberOfLines = 0
+        logsValue.lineBreakMode = .byWordWrapping
 
-        let logContainer = UIView()
-        logContainer.backgroundColor = UIColor.black.withAlphaComponent(0.20)
-        logContainer.layer.cornerRadius = 5
-        logContainer.layer.borderWidth = 1
-        logContainer.layer.borderColor = UIColor.white.withAlphaComponent(0.07).cgColor
-        logContainer.translatesAutoresizingMaskIntoConstraints = false
-        logContainer.addSubview(logsLabel)
-        logsLabel.translatesAutoresizingMaskIntoConstraints = false
+        let logPanel = UIView()
+
+        logPanel.backgroundColor = UIColor(
+            red: 0.08,
+            green: 0.10,
+            blue: 0.075,
+            alpha: 1
+        )
+
+        logPanel.layer.borderWidth = 1
+        logPanel.layer.borderColor = rule.cgColor
+        logPanel.layer.cornerRadius = 2
+        logPanel.translatesAutoresizingMaskIntoConstraints = false
+
+        logPanel.addSubview(logsValue)
+        logsValue.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            logsLabel.leadingAnchor.constraint(equalTo: logContainer.leadingAnchor, constant: 12),
-            logsLabel.trailingAnchor.constraint(equalTo: logContainer.trailingAnchor, constant: -12),
-            logsLabel.topAnchor.constraint(equalTo: logContainer.topAnchor, constant: 12),
-            logsLabel.bottomAnchor.constraint(equalTo: logContainer.bottomAnchor, constant: -12),
-            logContainer.heightAnchor.constraint(greaterThanOrEqualToConstant: 112)
+            logsValue.leadingAnchor.constraint(equalTo: logPanel.leadingAnchor, constant: 12),
+            logsValue.trailingAnchor.constraint(equalTo: logPanel.trailingAnchor, constant: -12),
+            logsValue.topAnchor.constraint(equalTo: logPanel.topAnchor, constant: 12),
+            logsValue.bottomAnchor.constraint(equalTo: logPanel.bottomAnchor, constant: -12),
+            logPanel.heightAnchor.constraint(greaterThanOrEqualToConstant: 100)
         ])
 
-        mainStack.addArrangedSubview(logContainer)
+        stack.addArrangedSubview(logPanel)
+        stack.setCustomSpacing(17, after: logPanel)
+
+        let footer = label(
+            "GAT0R     /     EXPERIMENTAL SOFTWARE     /     NO WARRANTY",
+            size: 8,
+            color: dim
+        )
+
+        footer.font = mono(8)
+        footer.textAlignment = .center
+
+        stack.addArrangedSubview(footer)
+    }
+
+    private func addSectionHeading(_ number: String, title: String) {
+        let row = UIStackView()
+
+        row.axis = .horizontal
+        row.alignment = .center
+        row.spacing = 12
+
+        let index = label(number, size: 10, color: acid, weight: .bold)
+        index.font = mono(10, bold: true)
+
+        let heading = label(title, size: 10, color: paper, weight: .bold)
+        heading.font = mono(10, bold: true)
+
+        row.addArrangedSubview(index)
+        row.addArrangedSubview(heading)
+
+        stack.addArrangedSubview(row)
+        stack.setCustomSpacing(15, after: row)
+    }
+
+    private func addDataRow(_ title: String, value: UILabel) {
+        let row = UIStackView()
+
+        row.axis = .horizontal
+        row.alignment = .firstBaseline
+        row.spacing = 12
+
+        let key = label(title, size: 9, color: dim)
+        key.font = mono(9)
+        key.setContentHuggingPriority(.required, for: .horizontal)
+        key.widthAnchor.constraint(equalToConstant: 105).isActive = true
+
+        value.textColor = paper
+        value.font = mono(10)
+        value.textAlignment = .right
+        value.numberOfLines = 2
+        value.lineBreakMode = .byTruncatingMiddle
+
+        row.addArrangedSubview(key)
+        row.addArrangedSubview(value)
+
+        stack.addArrangedSubview(row)
+        stack.setCustomSpacing(10, after: row)
     }
 
     private func refreshDevice() {
         let device = DeviceInfo.current
 
-        versionLabel.text = "iOS \(device.version)"
-        deviceLabel.text = device.model
-        architectureLabel.text = "ARCH  /  \(device.architecture)"
+        versionValue.text = "iOS " + device.version
+        modelValue.text = device.model
+        architectureValue.text = device.architecture
 
-        compatibilityLabel.text = device.isCompatible
-            ? "TARGET VERSION DETECTED"
-            : device.compatibilityReason.uppercased()
+        compatibilityValue.text = device.isCompatible
+            ? "TARGET MATCHED  /  VERSION + ARCHITECTURE"
+            : "OUT OF RANGE  /  " + device.compatibilityReason.uppercased()
 
-        statusLabel.text = device.isCompatible
-            ? "COMPATIBLE DEVICE"
-            : "OUTSIDE SUPPORTED TARGET"
+        statusValue.text = device.isCompatible
+            ? "TARGET DEVICE DETECTED"
+            : "DEVICE OUTSIDE TARGET"
 
-        statusIndicator.backgroundColor = device.isCompatible
-            ? UIColor(red: 0.43, green: 0.70, blue: 0.55, alpha: 1)
-            : UIColor(red: 0.78, green: 0.59, blue: 0.36, alpha: 1)
+        statusMark.backgroundColor = device.isCompatible
+            ? acid
+            : UIColor(red: 0.88, green: 0.49, blue: 0.30, alpha: 1)
     }
 
     @objc private func startJailbreak() {
         jailbreakButton.isEnabled = false
-        jailbreakButton.alpha = 0.65
-        statusLabel.text = "CHECKING DEVICE"
-        statusIndicator.backgroundColor = accent
+        jailbreakButton.alpha = 0.55
 
-        JailbreakCoordinator.shared.start { [weak self] success, message in
+        statusValue.text = "CHECKING BACKEND…"
+        statusMark.backgroundColor = acid
+
+        JailbreakCoordinator.shared.start {
+            [weak self] (success: Bool, message: String) in
+
             guard let self = self else { return }
 
             self.jailbreakButton.isEnabled = true
             self.jailbreakButton.alpha = 1
 
-            self.statusLabel.text = success
-                ? "OPERATION COMPLETED"
-                : "JAILBREAK NOT COMPLETED"
+            self.statusValue.text = success
+                ? "COMPLETED"
+                : "BACKEND UNAVAILABLE"
 
-            self.statusIndicator.backgroundColor = success
-                ? UIColor(red: 0.43, green: 0.70, blue: 0.55, alpha: 1)
-                : UIColor(red: 0.78, green: 0.59, blue: 0.36, alpha: 1)
+            self.statusMark.backgroundColor = success
+                ? self.acid
+                : UIColor(red: 0.88, green: 0.49, blue: 0.30, alpha: 1)
 
             self.refreshLogs()
 
@@ -365,7 +436,7 @@ final class ViewController: UIViewController {
             )
 
             alert.addAction(
-                UIAlertAction(title: "OK", style: .default)
+                UIAlertAction(title: "CLOSE", style: .default)
             )
 
             self.present(alert, animated: true)
@@ -373,29 +444,32 @@ final class ViewController: UIViewController {
     }
 
     @objc private func checkBootstrap() {
-        let message = "No verified bootstrap installation backend is connected."
+        let message = "No verified bootstrap installer is connected to this build."
 
-        GTRLogger.shared.log("Bootstrap check requested.")
+        GTRLogger.shared.log(
+            "Bootstrap inspection requested; installer unavailable."
+        )
+
         refreshLogs()
 
         let alert = UIAlertController(
-            title: "Bootstrap",
+            title: "BOOTSTRAP",
             message: message,
             preferredStyle: .alert
         )
 
         alert.addAction(
-            UIAlertAction(title: "OK", style: .default)
+            UIAlertAction(title: "CLOSE", style: .default)
         )
 
         present(alert, animated: true)
     }
 
     private func refreshLogs() {
-        let logs = GTRLogger.shared.entries()
-        let recent = Array(logs.suffix(8))
-        logsLabel.text = recent.isEmpty
-            ? "No diagnostic entries."
-            : recent.joined(separator: "\n")
+        let entries = GTRLogger.shared.entries()
+
+        logsValue.text = entries.isEmpty
+            ? "No events recorded."
+            : entries.suffix(7).joined(separator: "\n")
     }
 }
