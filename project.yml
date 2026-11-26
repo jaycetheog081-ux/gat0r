@@ -1,6 +1,5 @@
 # XcodeGen project spec
-# Target: gat0r — iOS 11 rootful jailbreak
-# Exploit: machswap2 (CVE-2019-6225), A7–A11, iOS 11.0–11.4.1
+# Target: gat0r — iOS 11 rootful jailbreak scaffold
 # Build: xcodegen generate --spec project.yml
 
 name: gat0r
@@ -21,28 +20,27 @@ settings:
     PRODUCT_NAME: gat0r
     SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "11.0"
-    TARGETED_DEVICE_FAMILY: "1,2"               # iPhone + iPad
-    ARCHS: arm64                                # 64-bit only — matches exploit target
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ARCHS: arm64
     VALID_ARCHS: arm64
     ONLY_ACTIVE_ARCH: NO
-    ENABLE_BITCODE: NO                          # required — bitcode strips custom sections
-    ENABLE_HARDENED_RUNTIME: NO                 # required — tfp0 acquisition
-    CODE_SIGNING_ALLOWED: NO                    # unsigned IPA via CI
+    ENABLE_BITCODE: NO
+    ENABLE_HARDENED_RUNTIME: NO
+    CODE_SIGNING_ALLOWED: NO
     CODE_SIGNING_REQUIRED: NO
     CODE_SIGN_IDENTITY: ""
     ENTITLEMENTS_REQUIRED: NO
-    GCC_OPTIMIZATION_LEVEL: "0"                 # debug; set to s for release
-    SWIFT_OPTIMIZATION_LEVEL: "-Onone"          # debug
+    GCC_OPTIMIZATION_LEVEL: "0"
+    SWIFT_OPTIMIZATION_LEVEL: "-Onone"
     OTHER_CFLAGS:
-      - "-Imachswap2"                           # machswap2 header path
-      - "-Igat0r"                               # project headers
+      - "-Igat0r"
     OTHER_LDFLAGS:
-      - "-lc++"                                 # C++ runtime for machswap2 internals if needed
+      - "-lc++"
     SWIFT_OBJC_BRIDGING_HEADER: gat0r/machswap2_bridge.h
     CLANG_ENABLE_MODULES: YES
     CLANG_ENABLE_OBJC_ARC: YES
     MTL_ENABLE_DEBUG_INFO: YES
-    DEBUG_INFORMATION_FORMAT: dwarf            # dwarf-with-dsym for release
+    DEBUG_INFORMATION_FORMAT: dwarf
 
   configs:
     Debug:
@@ -76,7 +74,7 @@ targets:
         CFBundleInfoDictionaryVersion: "6.0"
         CFBundlePackageType: APPL
         LSRequiresIPhoneOS: true
-        UILaunchStoryboardName: ""             # no storyboard — UIKit programmatic
+        UILaunchStoryboardName: ""
         UIApplicationSceneManifest: {}
         UIRequiresFullScreen: true
         NSPrincipalClass: UIApplication
@@ -85,14 +83,12 @@ targets:
         UIDeviceCapabilities:
           - arm64
 
-    # Entitlements — minimal; expand when bootstrap requires platform-application
     entitlements:
       path: gat0r/gat0r.entitlements
       properties:
         com.apple.security.application-groups: []
 
     sources:
-      # Swift application layer
       - path: gat0r
         includes:
           - "**/*.swift"
@@ -103,15 +99,6 @@ targets:
           - "Info.plist"
           - "*.entitlements"
 
-      # machswap2 C exploit sources — full directory
-      - path: machswap2
-        includes:
-          - "**/*.c"
-          - "**/*.h"
-          - "**/*.m"
-        buildPhase: sources
-
-    # Linked frameworks
     dependencies:
       - framework: System/Library/Frameworks/UIKit.framework
         implicit: true
@@ -120,7 +107,6 @@ targets:
       - sdk: libc.tbd
       - sdk: libSystem.B.tbd
 
-    # Build phases
     preBuildScripts:
       - name: "Verify architecture"
         script: |
