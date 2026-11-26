@@ -42,14 +42,16 @@ jobs:
 
       - name: Package IPA
         run: |
+          rm -rf Payload artifacts
           mkdir -p Payload artifacts
-          cp -R build/Build/Products/Release-iphoneos/gat0r.app Payload/
-          cd Payload
-          zip -r ../artifacts/gat0r.ipa gat0r.app
-          cd ..
+          cp -R build/Build/Products/Release-iphoneos/gat0r.app Payload/gat0r.app
+          /usr/bin/zip -qry artifacts/gat0r.ipa Payload
+          unzip -t artifacts/gat0r.ipa
+          unzip -Z1 artifacts/gat0r.ipa | grep -Fx 'Payload/gat0r.app/Info.plist'
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: gat0r-unsigned-ipa
           path: artifacts/gat0r.ipa
+          if-no-files-found: error
