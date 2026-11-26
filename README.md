@@ -114,4 +114,4 @@ gat0r aims to provide an independent, modular, and maintainable alternative to l
 
 ## License
 
-License: GPL 3.0
+License: GPL-3.0
