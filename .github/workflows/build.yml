@@ -1,0 +1,55 @@
+name: Build gat0r
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.4.app
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate --spec project.yml
+
+      - name: Build
+        run: |
+          xcodebuild \
+            -project gat0r.xcodeproj \
+            -scheme gat0r \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload artifacts
+          cp -R build/Build/Products/Release-iphoneos/gat0r.app Payload/
+          cd Payload
+          zip -r ../artifacts/gat0r.ipa gat0r.app
+          cd ..
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: gat0r-unsigned-ipa
+          path: artifacts/gat0r.ipa
