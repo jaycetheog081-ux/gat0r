@@ -1,4 +1,3 @@
-
 import UIKit
 
 final class ViewController: UIViewController {
@@ -26,7 +25,6 @@ final class ViewController: UIViewController {
     private let versionValue = UILabel()
     private let modelValue = UILabel()
     private let architectureValue = UILabel()
-    private let compatibilityValue = UILabel()
     private let statusValue = UILabel()
     private let statusDot = UIView()
     private let logsValue = UILabel()
@@ -45,6 +43,11 @@ final class ViewController: UIViewController {
         refreshLogs()
     }
 
+    private func monoFont(_ size: CGFloat) -> UIFont {
+        return UIFont(name: "Menlo", size: size)
+            ?? UIFont.systemFont(ofSize: size)
+    }
+
     private func configureNavigation() {
         title = "gat0r"
 
@@ -55,8 +58,8 @@ final class ViewController: UIViewController {
         navigationController?.navigationBar.backgroundColor = background
 
         navigationController?.navigationBar.titleTextAttributes = [
-            NSAttributedStringKey.foregroundColor: ink,
-            NSAttributedStringKey.font: UIFont.systemFont(
+            NSAttributedString.Key.foregroundColor: ink,
+            NSAttributedString.Key.font: UIFont.systemFont(
                 ofSize: 17,
                 weight: .semibold
             )
@@ -129,18 +132,17 @@ final class ViewController: UIViewController {
     }
 
     private func makeSectionTitle(_ text: String) -> UILabel {
-        let label = makeLabel(
+        return makeLabel(
             text.uppercased(),
             size: 13,
             weight: .regular,
             color: secondary
         )
-        return label
     }
 
     private func makePanel() -> UIView {
         let panel = UIView()
-        panel.backgroundColor = UIColor.white
+        panel.backgroundColor = .white
         panel.layer.cornerRadius = 13
         panel.layer.borderWidth = 0.5
         panel.layer.borderColor = UIColor(
@@ -177,14 +179,12 @@ final class ViewController: UIViewController {
             color: blue
         )
 
-        let title = makeLabel(
+        let heading = makeLabel(
             "Hello, gat0r.",
             size: 36,
             weight: .bold,
             color: ink
         )
-
-        title.font = UIFont.systemFont(ofSize: 36, weight: .bold)
 
         let subtitle = makeLabel(
             "A fresh start for your iOS 11 device.",
@@ -199,24 +199,20 @@ final class ViewController: UIViewController {
             color: secondary
         )
 
-        header.addSubview(eyebrow)
-        header.addSubview(title)
-        header.addSubview(subtitle)
-        header.addSubview(release)
-
-        [eyebrow, title, subtitle, release].forEach {
+        [eyebrow, heading, subtitle, release].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
+            header.addSubview($0)
         }
 
         NSLayoutConstraint.activate([
             eyebrow.topAnchor.constraint(equalTo: header.topAnchor),
             eyebrow.leadingAnchor.constraint(equalTo: header.leadingAnchor),
 
-            title.topAnchor.constraint(equalTo: eyebrow.bottomAnchor, constant: 9),
-            title.leadingAnchor.constraint(equalTo: header.leadingAnchor),
-            title.trailingAnchor.constraint(equalTo: header.trailingAnchor),
+            heading.topAnchor.constraint(equalTo: eyebrow.bottomAnchor, constant: 9),
+            heading.leadingAnchor.constraint(equalTo: header.leadingAnchor),
+            heading.trailingAnchor.constraint(equalTo: header.trailingAnchor),
 
-            subtitle.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 5),
+            subtitle.topAnchor.constraint(equalTo: heading.bottomAnchor, constant: 5),
             subtitle.leadingAnchor.constraint(equalTo: header.leadingAnchor),
 
             release.topAnchor.constraint(equalTo: subtitle.bottomAnchor, constant: 15),
@@ -232,10 +228,6 @@ final class ViewController: UIViewController {
 
         let panel = makePanel()
 
-        let top = UIView()
-        top.translatesAutoresizingMaskIntoConstraints = false
-        panel.addSubview(top)
-
         let icon = UIView()
         icon.backgroundColor = UIColor(
             red: 0.91, green: 0.95, blue: 1, alpha: 1
@@ -246,9 +238,7 @@ final class ViewController: UIViewController {
         let glyph = makeLabel("↯", size: 27, weight: .medium, color: blue)
         glyph.textAlignment = .center
         glyph.translatesAutoresizingMaskIntoConstraints = false
-
         icon.addSubview(glyph)
-        top.addSubview(icon)
 
         let heading = makeLabel(
             "Not jailbroken",
@@ -268,26 +258,11 @@ final class ViewController: UIViewController {
         textStack.spacing = 5
         textStack.translatesAutoresizingMaskIntoConstraints = false
 
+        let top = UIView()
+        top.translatesAutoresizingMaskIntoConstraints = false
+        top.addSubview(icon)
         top.addSubview(textStack)
-
-        NSLayoutConstraint.activate([
-            top.topAnchor.constraint(equalTo: panel.topAnchor, constant: 19),
-            top.leadingAnchor.constraint(equalTo: panel.leadingAnchor, constant: 17),
-            top.trailingAnchor.constraint(equalTo: panel.trailingAnchor, constant: -17),
-            top.bottomAnchor.constraint(equalTo: panel.bottomAnchor, constant: -19),
-
-            icon.leadingAnchor.constraint(equalTo: top.leadingAnchor),
-            icon.centerYAnchor.constraint(equalTo: top.centerYAnchor),
-            icon.widthAnchor.constraint(equalToConstant: 48),
-            icon.heightAnchor.constraint(equalToConstant: 48),
-
-            glyph.centerXAnchor.constraint(equalTo: icon.centerXAnchor),
-            glyph.centerYAnchor.constraint(equalTo: icon.centerYAnchor),
-
-            textStack.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 13),
-            textStack.trailingAnchor.constraint(equalTo: top.trailingAnchor),
-            textStack.centerYAnchor.constraint(equalTo: top.centerYAnchor)
-        ])
+        panel.addSubview(top)
 
         statusValue.text = "NOT CONNECTED"
         statusValue.font = UIFont.systemFont(ofSize: 11, weight: .semibold)
@@ -303,16 +278,35 @@ final class ViewController: UIViewController {
         statusRow.axis = .horizontal
         statusRow.alignment = .center
         statusRow.spacing = 8
-
-        statusDot.widthAnchor.constraint(equalToConstant: 8).isActive = true
-        statusDot.heightAnchor.constraint(equalToConstant: 8).isActive = true
-
-        panel.addSubview(statusRow)
         statusRow.translatesAutoresizingMaskIntoConstraints = false
+        panel.addSubview(statusRow)
 
         NSLayoutConstraint.activate([
+            top.topAnchor.constraint(equalTo: panel.topAnchor, constant: 17),
+            top.leadingAnchor.constraint(equalTo: panel.leadingAnchor, constant: 17),
+            top.trailingAnchor.constraint(equalTo: panel.trailingAnchor, constant: -17),
+
+            icon.leadingAnchor.constraint(equalTo: top.leadingAnchor),
+            icon.centerYAnchor.constraint(equalTo: top.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 48),
+            icon.heightAnchor.constraint(equalToConstant: 48),
+
+            glyph.centerXAnchor.constraint(equalTo: icon.centerXAnchor),
+            glyph.centerYAnchor.constraint(equalTo: icon.centerYAnchor),
+
+            textStack.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 13),
+            textStack.trailingAnchor.constraint(equalTo: top.trailingAnchor),
+            textStack.centerYAnchor.constraint(equalTo: top.centerYAnchor),
+
+            top.heightAnchor.constraint(equalToConstant: 48),
+
+            statusRow.topAnchor.constraint(equalTo: top.bottomAnchor, constant: 13),
             statusRow.leadingAnchor.constraint(equalTo: panel.leadingAnchor, constant: 19),
-            statusRow.bottomAnchor.constraint(equalTo: panel.bottomAnchor, constant: -13)
+            statusRow.trailingAnchor.constraint(lessThanOrEqualTo: panel.trailingAnchor, constant: -19),
+            statusRow.bottomAnchor.constraint(equalTo: panel.bottomAnchor, constant: -14),
+
+            statusDot.widthAnchor.constraint(equalToConstant: 8),
+            statusDot.heightAnchor.constraint(equalToConstant: 8)
         ])
 
         stack.addArrangedSubview(panel)
@@ -414,23 +408,19 @@ final class ViewController: UIViewController {
 
         stack.addArrangedSubview(jailbreakButton)
 
-        let bootstrap = makeActionRow(
+        stack.addArrangedSubview(makeActionRow(
             title: "Inspect Bootstrap",
             subtitle: "Check installation components",
-            symbol: "📦",
+            symbol: "▦",
             action: #selector(checkBootstrap)
-        )
+        ))
 
-        stack.addArrangedSubview(bootstrap)
-
-        let diagnostics = makeActionRow(
+        stack.addArrangedSubview(makeActionRow(
             title: "System Diagnostics",
             subtitle: "View firmware and kernel information",
             symbol: "ⓘ",
             action: #selector(openDiagnostics)
-        )
-
-        stack.addArrangedSubview(diagnostics)
+        ))
     }
 
     private func makeActionRow(
@@ -481,7 +471,7 @@ final class ViewController: UIViewController {
 
         let panel = makePanel()
 
-        logsValue.font = UIFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+        logsValue.font = monoFont(11)
         logsValue.textColor = secondary
         logsValue.numberOfLines = 0
 
@@ -516,10 +506,6 @@ final class ViewController: UIViewController {
         modelValue.text = device.model
         architectureValue.text = device.architecture
 
-        compatibilityValue.text = device.isCompatible
-            ? "TARGET MATCHED"
-            : "OUT OF RANGE"
-
         statusValue.text = device.isCompatible
             ? "TARGET DEVICE DETECTED"
             : "DEVICE OUTSIDE TARGET"
@@ -532,7 +518,6 @@ final class ViewController: UIViewController {
     @objc private func startJailbreak() {
         jailbreakButton.isEnabled = false
         jailbreakButton.alpha = 0.6
-
         statusValue.text = "CHECKING BACKEND…"
 
         JailbreakCoordinator.shared.start {
@@ -559,10 +544,7 @@ final class ViewController: UIViewController {
                 preferredStyle: .alert
             )
 
-            alert.addAction(
-                UIAlertAction(title: "OK", style: .default)
-            )
-
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
             self.present(alert, animated: true)
         }
     }
@@ -580,10 +562,7 @@ final class ViewController: UIViewController {
             preferredStyle: .alert
         )
 
-        alert.addAction(
-            UIAlertAction(title: "OK", style: .default)
-        )
-
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
 
@@ -592,10 +571,7 @@ final class ViewController: UIViewController {
         refreshLogs()
 
         let diagnostics = DiagnosticsViewController()
-        let navigation = UINavigationController(
-            rootViewController: diagnostics
-        )
-
+        let navigation = UINavigationController(rootViewController: diagnostics)
         navigation.modalPresentationStyle = .fullScreen
         present(navigation, animated: true)
     }
